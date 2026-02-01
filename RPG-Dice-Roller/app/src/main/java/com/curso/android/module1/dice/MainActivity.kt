@@ -71,7 +71,6 @@ import kotlinx.coroutines.launch
 // --- Imports para estilos ---
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.HorizontalDivider
 
 // --- Imports para centrar el total score en su contenedor  ---
 import androidx.compose.ui.text.style.TextAlign
@@ -236,16 +235,33 @@ fun DiceRollerScreen() {
     var isRollingDex by remember { mutableStateOf(false) }
     var isRollingWis by remember { mutableStateOf(false) }
 
+    // --- ESTADO PARA LAS FRASES RPG ---
+    // Definimos la variable UNA SOLA VEZ aquí:
+    val rpgQuotes = listOf(
+        "Fortune favors the brave.",
+        "The dice determine your destiny.",
+        "A true hero makes their own luck.",
+        "Legends are born from critical rolls.",
+        "Your adventure begins now!",
+        "May your hits be critical and your failures few."
+    )
+    var selectedQuote by rememberSaveable { mutableStateOf("") }
+
     val scope = rememberCoroutineScope()
 
     // 2. LÓGICA
     val total = vitality + dexterity + wisdom
     val isGameFinished = vitLocked && dexLocked && wisLocked
 
+    // Lógica para seleccionar frase (solo si terminó y aún no hay frase)
+    if (isGameFinished && selectedQuote.isEmpty()) {
+        selectedQuote = rpgQuotes.random()
+    }
+
     val (message, messageColor) = when {
         !isGameFinished -> "" to Color.Transparent
-        total >= 50 -> "Godlike!" to Color(0xFFB8860B) // Ocre Dorado
-        total < 30 -> "Re-roll recommended!" to Color(0xFFDC143C) // Rojo Carmesí
+        total >= 50 -> "Godlike!" to Color(0xFFB8860B) // Dorado
+        total < 30 -> "Re-roll recommended!" to Color(0xFFDC143C) // Rojo
         else -> "Good stats" to Color.DarkGray
     }
 
@@ -265,6 +281,7 @@ fun DiceRollerScreen() {
     fun resetAll() {
         vitality = 0; dexterity = 0; wisdom = 0
         vitLocked = false; dexLocked = false; wisLocked = false
+        selectedQuote = "" // Limpiamos la frase al resetear
     }
 
     // 3. UI (DISEÑO VISUAL)
@@ -273,14 +290,13 @@ fun DiceRollerScreen() {
             TopAppBar(
                 title = {
                     Text(
-                        "⚔️ Character Creator", // Emoji de espadas
-                        fontFamily = FontFamily.Serif, // Fuente tipo "Libro Antiguo"
+                        "⚔️ Character Creator",
+                        fontFamily = FontFamily.Serif,
                         fontWeight = FontWeight.ExtraBold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 },
                 actions = {
-                    // Botón Reset discreto
                     Button(
                         onClick = { resetAll() },
                         colors = ButtonDefaults.buttonColors(
@@ -302,60 +318,57 @@ fun DiceRollerScreen() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            // --- VITALITY (Rojo / Corazón) ---
+            // --- VITALITY ---
             StatRow(
                 label = "Vitality",
                 emoji = "❤️",
-                themeColor = Color(0xFFD32F2F), // Rojo Intenso
+                themeColor = Color(0xFFD32F2F),
                 value = vitality,
                 isEnabled = !isRollingVit && !vitLocked,
                 onRoll = { rollStat({ vitality = it }, { isRollingVit = it }, { vitLocked = true }) }
             )
 
-            // --- DEXTERITY (Verde / Arco) ---
+            // --- DEXTERITY ---
             StatRow(
                 label = "Dexterity",
                 emoji = "🏹",
-                themeColor = Color(0xFF388E3C), // Verde Bosque
+                themeColor = Color(0xFF388E3C),
                 value = dexterity,
                 isEnabled = !isRollingDex && !dexLocked,
                 onRoll = { rollStat({ dexterity = it }, { isRollingDex = it }, { dexLocked = true }) }
             )
 
-            // --- WISDOM (Azul-Violeta / Cristal) ---
+            // --- WISDOM ---
             StatRow(
                 label = "Wisdom",
                 emoji = "🔮",
-                themeColor = Color(0xFF512DA8), // Violeta Místico
+                themeColor = Color(0xFF512DA8),
                 value = wisdom,
                 isEnabled = !isRollingWis && !wisLocked,
                 onRoll = { rollStat({ wisdom = it }, { isRollingWis = it }, { wisLocked = true }) }
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
-
             // --- TOTAL SCORE ---
-            // Borde grueso para que parezca una ficha real
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 16.dp), // Un poco de aire arriba
+                    .padding(top = 24.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(8.dp),
                 border = androidx.compose.foundation.BorderStroke(2.dp, Color.LightGray)
             ) {
                 Column(
                     modifier = Modifier
-                        .fillMaxWidth() // <--- CLAVE: Ocupar todo el ancho de la tarjeta
+                        .fillMaxWidth()
                         .padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally, // Centrar elementos hijos
-                    verticalArrangement = Arrangement.Center // Centrar verticalmente si sobra espacio
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = "TOTAL SCORE",
+                        "TOTAL SCORE",
                         style = MaterialTheme.typography.labelLarge,
                         fontFamily = FontFamily.Serif,
-                        textAlign = TextAlign.Center // Asegura centrado del texto
+                        textAlign = TextAlign.Center
                     )
 
                     Text(
@@ -364,7 +377,7 @@ fun DiceRollerScreen() {
                         fontFamily = FontFamily.Monospace,
                         fontWeight = FontWeight.Bold,
                         color = messageColor,
-                        textAlign = TextAlign.Center, // Asegura centrado del número
+                        textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()
                     )
 
@@ -375,10 +388,53 @@ fun DiceRollerScreen() {
                             fontFamily = FontFamily.Serif,
                             fontWeight = FontWeight.Bold,
                             color = messageColor,
-                            textAlign = TextAlign.Center, // Asegura centrado del mensaje
+                            textAlign = TextAlign.Center,
                             modifier = Modifier
                                 .padding(top = 8.dp)
                                 .fillMaxWidth()
+                        )
+                    }
+                }
+            }
+
+            // --- RPG QUOTE (Solo visible al final) ---
+            if (isGameFinished) {
+                Spacer(modifier = Modifier.height(24.dp)) // Espacio superior
+
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth(0.9f) // Un poco más estrecho
+                        .padding(bottom = 24.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    ),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color.Gray.copy(alpha = 0.5f))
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = "YOUR QUOTE:",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontFamily = FontFamily.Serif,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                            text = "\"$selectedQuote\"",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontFamily = FontFamily.Serif,
+                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
