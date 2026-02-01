@@ -68,6 +68,13 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+// --- Imports para estilos ---
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
+
+// --- Imports para centrar el total score en su contenedor  ---
+import androidx.compose.ui.text.style.TextAlign
 // =============================================================================
 // 📚 CHEAT SHEET: CONCEPTOS TEÓRICOS DEL MÓDULO 1
 // =============================================================================
@@ -211,92 +218,76 @@ class MainActivity : ComponentActivity() {
 }
 
 // =============================================================================
-// 2. PANTALLA PRINCIPAL: HOJA DE PERSONAJE (DiceRollerScreen)
+// PANTALLA PRINCIPAL: DiceRollerScreen (RPG EDITION ⚔️)
 // =============================================================================
-
-/**
- * @OptIn(ExperimentalMaterial3Api::class): Necesario para usar ciertos componentes
- * de Material 3 que aún están en fase experimental (como TopAppBar o Cards avanzados).
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DiceRollerScreen() {
-    // =========================================================================
-    // 1. ESTADO (State Hoisting)
-    // =========================================================================
-
-    // VALORES: Iniciamos en 0 para saber que no se han tirado
+    // 1. ESTADO
     var vitality by rememberSaveable { mutableIntStateOf(0) }
     var dexterity by rememberSaveable { mutableIntStateOf(0) }
     var wisdom by rememberSaveable { mutableIntStateOf(0) }
 
-    // BLOQUEOS: Booleanos para saber si ya se usó ese botón (NUEVO)
     var vitLocked by rememberSaveable { mutableStateOf(false) }
     var dexLocked by rememberSaveable { mutableStateOf(false) }
     var wisLocked by rememberSaveable { mutableStateOf(false) }
 
-    // ANIMACIÓN: Control visual
     var isRollingVit by remember { mutableStateOf(false) }
     var isRollingDex by remember { mutableStateOf(false) }
     var isRollingWis by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
 
-    // =========================================================================
-    // 2. LÓGICA DE NEGOCIO
-    // =========================================================================
-
+    // 2. LÓGICA
     val total = vitality + dexterity + wisdom
-
-    // Lógica para saber si el juego terminó (todos bloqueados)
     val isGameFinished = vitLocked && dexLocked && wisLocked
 
-    // Mensajes: Solo mostramos el juicio final si el juego terminó
     val (message, messageColor) = when {
-        !isGameFinished -> "Tira todos los dados..." to Color.Gray
-        total >= 50 -> "¡GODLIKE! 🌟" to Color(0xFFFFD700)
-        total < 30 -> "Demasiado débil... 💀" to Color(0xFFDC143C)
-        else -> "Personaje Equilibrado ✅" to Color(0xFF4CAF50) // Verde
+        !isGameFinished -> "" to Color.Transparent
+        total >= 50 -> "Godlike!" to Color(0xFFB8860B) // Ocre Dorado
+        total < 30 -> "Re-roll recommended!" to Color(0xFFDC143C) // Rojo Carmesí
+        else -> "Good stats" to Color.DarkGray
     }
 
-    /**
-     * Función Helper Mejorada: Ahora recibe 'onLock' para bloquear al final
-     */
-    fun rollStat(
-        updateValue: (Int) -> Unit,
-        setRolling: (Boolean) -> Unit,
-        lockStat: () -> Unit // Nueva función que pasaremos para bloquear
-    ) {
+    fun rollStat(updateValue: (Int) -> Unit, setRolling: (Boolean) -> Unit, lockStat: () -> Unit) {
         scope.launch {
-            setRolling(true) // 1. Empieza animación
-
+            setRolling(true)
             repeat(15) {
                 updateValue((1..20).random())
                 delay(ANIMATION_DELAY_MS)
             }
-
-            updateValue((1..20).random()) // 2. Valor final
-            setRolling(false) // 3. Termina animación
-            lockStat() // 4. BLOQUEO PERMANENTE (NUEVO)
+            updateValue((1..20).random())
+            setRolling(false)
+            lockStat()
         }
     }
 
-    // Función para reiniciar todo (RESET)
     fun resetAll() {
         vitality = 0; dexterity = 0; wisdom = 0
         vitLocked = false; dexLocked = false; wisLocked = false
     }
 
-    // =========================================================================
-    // 3. UI (INTERFAZ VISUAL)
-    // =========================================================================
+    // 3. UI (DISEÑO VISUAL)
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("RPG Character Creator") },
-                // Agregamos el botón de Reset en la barra superior
+                title = {
+                    Text(
+                        "⚔️ Character Creator", // Emoji de espadas
+                        fontFamily = FontFamily.Serif, // Fuente tipo "Libro Antiguo"
+                        fontWeight = FontWeight.ExtraBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                },
                 actions = {
-                    Button(onClick = { resetAll() }) {
+                    // Botón Reset discreto
+                    Button(
+                        onClick = { resetAll() },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer
+                        )
+                    ) {
                         Text("RESET")
                     }
                 }
@@ -311,76 +302,85 @@ fun DiceRollerScreen() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            // Fila Vitality
+            // --- VITALITY (Rojo / Corazón) ---
             StatRow(
                 label = "Vitality",
+                emoji = "❤️",
+                themeColor = Color(0xFFD32F2F), // Rojo Intenso
                 value = vitality,
-                // El botón se deshabilita si está rodando O si ya está bloqueado
                 isEnabled = !isRollingVit && !vitLocked,
-                onRoll = {
-                    rollStat(
-                        updateValue = { vitality = it },
-                        setRolling = { isRollingVit = it },
-                        lockStat = { vitLocked = true } // Al terminar, bloqueamos
-                    )
-                }
+                onRoll = { rollStat({ vitality = it }, { isRollingVit = it }, { vitLocked = true }) }
             )
 
-            // Fila Dexterity
+            // --- DEXTERITY (Verde / Arco) ---
             StatRow(
                 label = "Dexterity",
+                emoji = "🏹",
+                themeColor = Color(0xFF388E3C), // Verde Bosque
                 value = dexterity,
                 isEnabled = !isRollingDex && !dexLocked,
-                onRoll = {
-                    rollStat(
-                        updateValue = { dexterity = it },
-                        setRolling = { isRollingDex = it },
-                        lockStat = { dexLocked = true }
-                    )
-                }
+                onRoll = { rollStat({ dexterity = it }, { isRollingDex = it }, { dexLocked = true }) }
             )
 
-            // Fila Wisdom
+            // --- WISDOM (Azul-Violeta / Cristal) ---
             StatRow(
                 label = "Wisdom",
+                emoji = "🔮",
+                themeColor = Color(0xFF512DA8), // Violeta Místico
                 value = wisdom,
                 isEnabled = !isRollingWis && !wisLocked,
-                onRoll = {
-                    rollStat(
-                        updateValue = { wisdom = it },
-                        setRolling = { isRollingWis = it },
-                        lockStat = { wisLocked = true }
-                    )
-                }
+                onRoll = { rollStat({ wisdom = it }, { isRollingWis = it }, { wisLocked = true }) }
             )
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // --- TARJETA DE RESULTADO TOTAL ---
+            // --- TOTAL SCORE ---
+            // Borde grueso para que parezca una ficha real
             Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp), // Un poco de aire arriba
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(8.dp),
+                border = androidx.compose.foundation.BorderStroke(2.dp, Color.LightGray)
             ) {
                 Column(
-                    modifier = Modifier.padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    modifier = Modifier
+                        .fillMaxWidth() // <--- CLAVE: Ocupar todo el ancho de la tarjeta
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally, // Centrar elementos hijos
+                    verticalArrangement = Arrangement.Center // Centrar verticalmente si sobra espacio
                 ) {
-                    Text("TOTAL SCORE", style = MaterialTheme.typography.labelMedium)
+                    Text(
+                        text = "TOTAL SCORE",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontFamily = FontFamily.Serif,
+                        textAlign = TextAlign.Center // Asegura centrado del texto
+                    )
 
                     Text(
                         text = total.toString(),
-                        fontSize = 48.sp,
+                        fontSize = 56.sp,
+                        fontFamily = FontFamily.Monospace,
                         fontWeight = FontWeight.Bold,
-                        color = messageColor
+                        color = messageColor,
+                        textAlign = TextAlign.Center, // Asegura centrado del número
+                        modifier = Modifier.fillMaxWidth()
                     )
 
-                    // Solo mostramos mensaje final
-                    Text(
-                        text = message,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = messageColor
-                    )
+                    if (message.isNotEmpty()) {
+                        Text(
+                            text = message,
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontFamily = FontFamily.Serif,
+                            fontWeight = FontWeight.Bold,
+                            color = messageColor,
+                            textAlign = TextAlign.Center, // Asegura centrado del mensaje
+                            modifier = Modifier
+                                .padding(top = 8.dp)
+                                .fillMaxWidth()
+                        )
+                    }
                 }
             }
         }
@@ -388,15 +388,13 @@ fun DiceRollerScreen() {
 }
 
 // =============================================================================
-// 3. COMPONENTE REUTILIZABLE: StatRow
+// COMPONENTE PERSONALIZADO: StatRow
 // =============================================================================
-/**
- * StatRow: Componente personalizado para dibujar una fila de estadística.
- * Muestra: Nombre (Label) + Valor + Botón
- */
 @Composable
 fun StatRow(
     label: String,
+    emoji: String,     // Nuevo parámetro: Emoji
+    themeColor: Color, // Nuevo parámetro: Color del botón
     value: Int,
     isEnabled: Boolean,
     onRoll: () -> Unit
@@ -405,7 +403,8 @@ fun StatRow(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
-        elevation = CardDefaults.cardElevation(4.dp)
+        elevation = CardDefaults.cardElevation(4.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Row(
             modifier = Modifier
@@ -414,31 +413,49 @@ fun StatRow(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-
+            // LADO IZQUIERDO: Emoji + Texto
             Row(verticalAlignment = Alignment.CenterVertically) {
-                // Si es 0, mostramos "--", si no, el número
+                Text(
+                    text = emoji,
+                    fontSize = 24.sp,
+                    modifier = Modifier.padding(end = 12.dp)
+                )
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontFamily = FontFamily.Serif, // Fuente RPG
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            // LADO DERECHO: Valor + Botón Coloreado
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 val displayValue = if (value == 0) "--" else value.toString()
 
-                // LÓGICA DE COLOR ESTRICTA (RPG)
                 val valueColor = when (value) {
-                    20 -> Color(0xFFFFD700) // ¡Crítico Natural! (Dorado)
-                    1 -> Color(0xFFDC143C)  // ¡Pifia! (Rojo)
-                    else -> MaterialTheme.colorScheme.onSurface // Normal
+                    20 -> Color(0xFFB8860B) // Oro
+                    1 -> Color(0xFFDC143C)  // Rojo Pifia
+                    else -> MaterialTheme.colorScheme.onSurface
                 }
 
                 Text(
                     text = displayValue,
                     style = MaterialTheme.typography.headlineMedium,
+                    fontFamily = FontFamily.Monospace, // Fuente técnica para números
+                    fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(end = 16.dp),
-                    color = valueColor // Aplicamos el color calculado
+                    color = valueColor
                 )
 
-                Button(onClick = onRoll, enabled = isEnabled) {
+                Button(
+                    onClick = onRoll,
+                    enabled = isEnabled,
+                    // AQUÍ APLICAMOS EL COLOR PERSONALIZADO AL BOTÓN
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = themeColor, // El color que pasamos (Rojo, Verde, Azul)
+                        disabledContainerColor = Color.LightGray // Gris cuando se bloquea
+                    )
+                ) {
                     Text("Roll")
                 }
             }
