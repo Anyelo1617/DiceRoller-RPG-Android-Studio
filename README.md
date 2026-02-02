@@ -79,3 +79,10 @@ Dado que este repositorio contiene dos proyectos independientes en la misma estr
 
 ---
 *Desarrollado como parte del Módulo 1 de Fundamentos Avanzados de Aplicaciones Web*
+
+*Links de Videos Demo*
+Traffic Light Simulator:
+https://youtu.be/YSRjM5FIDbA
+
+RPG Dice Roller:
+https://youtu.be/O-5bgQlUFSA
