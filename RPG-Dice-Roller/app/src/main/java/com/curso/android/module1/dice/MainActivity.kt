@@ -3,6 +3,7 @@ package com.curso.android.module1.dice
 // =============================================================================
 // IMPORTACIONES
 // =============================================================================
+
 // Organizamos las importaciones por categoría para mejor legibilidad.
 // En Kotlin/Android, usamos import para traer clases y funciones externas.
 
@@ -23,12 +24,14 @@ import androidx.activity.enableEdgeToEdge
 // Herramientas fundamentales de diseño (Layouts)
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
 
 // --- Material 3 Components ---
 // Componentes visuales modernos (Botones, Tarjetas, Textos)
@@ -74,6 +77,19 @@ import androidx.compose.material3.ButtonDefaults
 
 // --- Imports para centrar el total score en su contenedor  ---
 import androidx.compose.ui.text.style.TextAlign
+
+// --- Imports para iconos  ---
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.Icon
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.filled.PlayArrow
+
+// --- Imports para reproducción de sonido  ---
+import androidx.compose.ui.platform.LocalContext
+import android.media.MediaPlayer
+
 // =============================================================================
 // 📚 CHEAT SHEET: CONCEPTOS TEÓRICOS DEL MÓDULO 1
 // =============================================================================
@@ -235,6 +251,19 @@ fun DiceRollerScreen() {
     var isRollingDex by remember { mutableStateOf(false) }
     var isRollingWis by remember { mutableStateOf(false) }
 
+
+    val context = LocalContext.current
+
+    // 2. FUNCIÓN HELPER PARA SONIDO
+    fun playDiceSound() {
+        // Asegúrate de que tu archivo se llame 'dice_roll' en la carpeta raw
+        // Si se llama distinto, cambia R.raw.dice_roll por R.raw.tu_nombre
+        val mediaPlayer = MediaPlayer.create(context, R.raw.diceroll)
+        mediaPlayer.start()
+        // Liberar memoria cuando termine el sonido (Buena práctica)
+        mediaPlayer.setOnCompletionListener { mp -> mp.release() }
+    }
+
     // --- ESTADO PARA LAS FRASES RPG ---
     // Definimos la variable UNA SOLA VEZ aquí:
     val rpgQuotes = listOf(
@@ -281,10 +310,10 @@ fun DiceRollerScreen() {
     fun resetAll() {
         vitality = 0; dexterity = 0; wisdom = 0
         vitLocked = false; dexLocked = false; wisLocked = false
-        selectedQuote = "" // Limpiamos la frase al resetear
+        selectedQuote = ""
     }
 
-    // 3. UI (DISEÑO VISUAL)
+    // 3. UI
     Scaffold(
         topBar = {
             TopAppBar(
@@ -304,6 +333,12 @@ fun DiceRollerScreen() {
                             contentColor = MaterialTheme.colorScheme.onErrorContainer
                         )
                     ) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh, // Ícono del Core
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp) // Un poco más pequeño para que se vea fino
+                        )
+                        Spacer(modifier = Modifier.width(8.dp)) // Espacio entre ícono y texto
                         Text("RESET")
                     }
                 }
@@ -325,7 +360,9 @@ fun DiceRollerScreen() {
                 themeColor = Color(0xFFD32F2F),
                 value = vitality,
                 isEnabled = !isRollingVit && !vitLocked,
-                onRoll = { rollStat({ vitality = it }, { isRollingVit = it }, { vitLocked = true }) }
+                onRoll = {
+                    playDiceSound()
+                    rollStat({ vitality = it }, { isRollingVit = it }, { vitLocked = true }) }
             )
 
             // --- DEXTERITY ---
@@ -335,7 +372,9 @@ fun DiceRollerScreen() {
                 themeColor = Color(0xFF388E3C),
                 value = dexterity,
                 isEnabled = !isRollingDex && !dexLocked,
-                onRoll = { rollStat({ dexterity = it }, { isRollingDex = it }, { dexLocked = true }) }
+                onRoll = {
+                    playDiceSound()
+                    rollStat({ dexterity = it }, { isRollingDex = it }, { dexLocked = true }) }
             )
 
             // --- WISDOM ---
@@ -345,7 +384,9 @@ fun DiceRollerScreen() {
                 themeColor = Color(0xFF512DA8),
                 value = wisdom,
                 isEnabled = !isRollingWis && !wisLocked,
-                onRoll = { rollStat({ wisdom = it }, { isRollingWis = it }, { wisLocked = true }) }
+                onRoll = {
+                    playDiceSound()
+                    rollStat({ wisdom = it }, { isRollingWis = it }, { wisLocked = true }) }
             )
 
             // --- TOTAL SCORE ---
@@ -449,8 +490,8 @@ fun DiceRollerScreen() {
 @Composable
 fun StatRow(
     label: String,
-    emoji: String,     // Nuevo parámetro: Emoji
-    themeColor: Color, // Nuevo parámetro: Color del botón
+    emoji: String,     // Emoji
+    themeColor: Color, // Color del botón
     value: Int,
     isEnabled: Boolean,
     onRoll: () -> Unit
@@ -479,7 +520,7 @@ fun StatRow(
                 Text(
                     text = label,
                     style = MaterialTheme.typography.titleLarge,
-                    fontFamily = FontFamily.Serif, // Fuente RPG
+                    fontFamily = FontFamily.Serif,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -490,14 +531,14 @@ fun StatRow(
 
                 val valueColor = when (value) {
                     20 -> Color(0xFFB8860B) // Oro
-                    1 -> Color(0xFFDC143C)  // Rojo Pifia
+                    1 -> Color(0xFFDC143C)  // Rojo
                     else -> MaterialTheme.colorScheme.onSurface
                 }
 
                 Text(
                     text = displayValue,
                     style = MaterialTheme.typography.headlineMedium,
-                    fontFamily = FontFamily.Monospace, // Fuente técnica para números
+                    fontFamily = FontFamily.Monospace,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(end = 16.dp),
                     color = valueColor
@@ -506,12 +547,16 @@ fun StatRow(
                 Button(
                     onClick = onRoll,
                     enabled = isEnabled,
-                    // AQUÍ APLICAMOS EL COLOR PERSONALIZADO AL BOTÓN
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = themeColor, // El color que pasamos (Rojo, Verde, Azul)
-                        disabledContainerColor = Color.LightGray // Gris cuando se bloquea
-                    )
+                    colors = ButtonDefaults.buttonColors(containerColor = themeColor),
+                    shape = CircleShape, // Opcional: hacerlo redondito si te gusta
+                    contentPadding = PaddingValues(horizontal = 12.dp) // Ajustar relleno
                 ) {
+                    Icon(
+                        imageVector = Icons.Default.PlayArrow,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
                     Text("Roll")
                 }
             }
