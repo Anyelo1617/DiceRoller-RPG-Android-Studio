@@ -17,6 +17,9 @@ Este repositorio contiene dos proyectos prácticos desarrollados con **Kotlin** 
 ## ⚔️ Proyecto 1: RPG Character Creator
 Una aplicación interactiva para la creación de personajes de rol, que simula el lanzamiento de dados para determinar estadísticas vitales.
 
+![Character Creator Preview](screenshots/character_creator_preview.jpeg)
+*(Vista previa del Character Creator)*
+
 ### Características Principales
 * **Generación de Stats:** Tres filas independientes (Vitality, Dexterity, Wisdom) con botones de lanzamiento individuales.
 * **Animación de Dados:** Simulación visual de "rolling" utilizando Corrutinas para iterar valores rápidamente antes de establecer el resultado final.
@@ -37,6 +40,9 @@ Una aplicación interactiva para la creación de personajes de rol, que simula e
 
 ## 🚦 Proyecto 2: Traffic Light Simulator
 Un simulador de semáforo automatizado diseñado para practicar el manejo de tiempos y efectos lanzados que no dependen de la interacción del usuario.
+
+![Traffic Light Preview](screenshots/traffic_light_preview.jpeg)
+*(Vista previa del Traffic Light Simulator)*
 
 ###  Características Principales
 * **Ciclo Automatizado:** El semáforo cambia de estados automáticamente en un bucle infinito.
