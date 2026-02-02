@@ -40,7 +40,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// 1. ENUM DEFINED (Según requerimientos)
+// 1. ENUM DEFINED
 enum class TrafficLightState {
     Red, Yellow, Green
 }

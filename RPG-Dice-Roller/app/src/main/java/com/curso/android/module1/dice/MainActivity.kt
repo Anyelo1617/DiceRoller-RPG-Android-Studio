@@ -91,7 +91,7 @@ import androidx.compose.ui.platform.LocalContext
 import android.media.MediaPlayer
 
 // =============================================================================
-// 📚 CHEAT SHEET: CONCEPTOS TEÓRICOS DEL MÓDULO 1
+//  CHEAT SHEET: CONCEPTOS TEÓRICOS DEL MÓDULO 1
 // =============================================================================
 /*
    1. KOTLIN BASICS
@@ -120,7 +120,7 @@ import android.media.MediaPlayer
 */
 
 // =============================================================================
-// 📖 GLOSARIO TÉCNICO DETALLADO (Referencia del Curso)
+//  GLOSARIO TÉCNICO DETALLADO (Referencia del Curso)
 // =============================================================================
 
 /*
@@ -196,7 +196,7 @@ private const val TAG = "MainActivity"
 /**
  * Velocidad de la animación (milisegundos entre cada cambio de número).
  */
-private const val ANIMATION_DELAY_MS = 80L
+private const val ANIMATION_DELAY_MS = 75L
 
 // =============================================================================
 // 1. MAIN ACTIVITY (PUNTO DE ENTRADA)
@@ -255,12 +255,10 @@ fun DiceRollerScreen() {
     val context = LocalContext.current
 
     // 2. FUNCIÓN HELPER PARA SONIDO
-    fun playDiceSound() {
-        // Asegúrate de que tu archivo se llame 'dice_roll' en la carpeta raw
-        // Si se llama distinto, cambia R.raw.dice_roll por R.raw.tu_nombre
+    fun playDiceSound(){
         val mediaPlayer = MediaPlayer.create(context, R.raw.diceroll)
         mediaPlayer.start()
-        // Liberar memoria cuando termine el sonido (Buena práctica)
+        // Liberar memoria cuando termine el sonido
         mediaPlayer.setOnCompletionListener { mp -> mp.release() }
     }
 
@@ -438,7 +436,7 @@ fun DiceRollerScreen() {
                 }
             }
 
-            // --- RPG QUOTE (Solo visible al final) ---
+            // --- RPG QUOTE ---
             if (isGameFinished) {
                 Spacer(modifier = Modifier.height(24.dp)) // Espacio superior
 
@@ -525,7 +523,7 @@ fun StatRow(
                 )
             }
 
-            // LADO DERECHO: Valor + Botón Coloreado
+            // LADO DERECHO: Valor + Botón con color
             Row(verticalAlignment = Alignment.CenterVertically) {
                 val displayValue = if (value == 0) "--" else value.toString()
 
@@ -548,8 +546,8 @@ fun StatRow(
                     onClick = onRoll,
                     enabled = isEnabled,
                     colors = ButtonDefaults.buttonColors(containerColor = themeColor),
-                    shape = CircleShape, // Opcional: hacerlo redondito si te gusta
-                    contentPadding = PaddingValues(horizontal = 12.dp) // Ajustar relleno
+                    shape = CircleShape,
+                    contentPadding = PaddingValues(horizontal = 12.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.PlayArrow,
